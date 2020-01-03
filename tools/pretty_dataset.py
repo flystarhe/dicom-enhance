@@ -6,6 +6,7 @@ from pathlib import Path
 import SimpleITK as sitk
 from collections import defaultdict
 
+
 '''
 https://www.dicomstandard.org/current/
 - DICOM Part 6: Data Dictionary
@@ -16,6 +17,7 @@ https://www.dicomstandard.org/current/
 0008|1030 - Study Description
 0010|0020 - Patient ID
 '''
+
 
 G_TAGS = ['0008|0060', '0008|0070', '0018|0015', '0008|1030']
 
@@ -40,7 +42,8 @@ def meta_data_from_file(dicom_path, tags=None):
     if tags is None:
         tags = G_TAGS
 
-    vals = [reader.GetMetaData(tag) for tag in tags if reader.HasMetaDataKey(tag)]
+    vals = [reader.GetMetaData(tag)
+            for tag in tags if reader.HasMetaDataKey(tag)]
     return [v.split()[0].upper() for v in vals]
 
 
@@ -71,16 +74,19 @@ def split_dir(input_dir, output_dir):
 
             sub_dir = '_'.join(meta_data_from_file(dicom_list[0])[:3])
             patient_id = meta_data_from_file(dicom_list[0], ['0010|0020'])[0]
-            copy_files(dicom_list, os.path.join(output_dir, sub_dir, series_id))
+            copy_files(dicom_list, os.path.join(
+                output_dir, sub_dir, series_id))
 
-            counts[sub_dir]['images'] = counts[sub_dir].get('images', 0) + len(dicom_list)
+            counts[sub_dir]['images'] = counts[sub_dir].get(
+                'images', 0) + len(dicom_list)
             counts[sub_dir]['series'] = counts[sub_dir].get('series', 0) + 1
             patients[sub_dir].add(patient_id)
 
     for sub_dir, patient_ids in patients.items():
         counts[sub_dir]['patients'] = len(patient_ids)
 
-    msg = ['# ReadMe', '', '## counts', json.dumps(counts, indent=4, sort_keys=True)]
+    msg = ['# ReadMe', '', '## counts', json.dumps(
+        counts, indent=4, sort_keys=True)]
     with open(os.path.join(output_dir, 'readme.md'), 'w') as f:
         f.write('\n'.join(msg))
     print('\n'.join(msg))
